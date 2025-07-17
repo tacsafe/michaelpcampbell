@@ -1,11 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bitcoin HODL Waves (Real Data)</title>
+  <title>Bitcoin HODL Waves (Static CSV)</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -22,55 +22,57 @@
       background: #222;
       border-radius: 8px;
       padding: 1rem;
+      max-width: calc(100% - 300px);
     }
   </style>
 </head>
 <body>
 
-<h1>Bitcoin HODL Waves (Real Data from GitHub)</h1>
+<h1>Bitcoin HODL Waves (Local CSV Data)</h1>
 <canvas id="hodlwavesChart" width="1000" height="500"></canvas>
 
 <script>
-async function loadHodlWavesFromCSV() {
+async function loadHodlWaves() {
   const response = await fetch('./hodl_waves.csv');
   const text = await response.text();
   const rows = text.trim().split('\n').map(r => r.split(','));
 
-  const headers = rows[0];
-  const dateIndex = headers.indexOf('Date');
-  const ageBands = headers.slice(1);
-
+  const headers = rows[0].slice(1); // skip 'date'
   const labels = [];
-  const bandData = ageBands.map(() => []);
+  const datasets = headers.map(() => []);
 
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i];
-    const date = new Date(row[dateIndex]);
-    labels.push(date);
-    for (let j = 0; j < ageBands.length; j++) {
-      bandData[j].push(parseFloat(row[j + 1]) || 0);
-    }
-  }
+  rows.slice(1).forEach(row => {
+    labels.push(new Date(row[0]));
+    row.slice(1).forEach((val, i) => {
+      datasets[i].push(parseFloat(val));
+    });
+  });
 
-  const datasets = ageBands.map((label, i) => ({
-    label,
-    data: bandData[i],
-    backgroundColor: `hsl(${i * 36}, 70%, 50%)`,
-    stack: 'waves',
-    borderWidth: 0
-  }));
+  const colors = headers.map((_, i) => `hsl(${(i * 36) % 360}, 65%, 50%)`);
 
   new Chart(document.getElementById('hodlwavesChart').getContext('2d'), {
     type: 'bar',
-    data: { labels, datasets },
+    data: {
+      labels,
+      datasets: headers.map((label, i) => ({
+        label,
+        data: datasets[i],
+        backgroundColor: colors[i],
+        stack: 'waves',
+        borderWidth: 0
+      }))
+    },
     options: {
       responsive: true,
-      plugins: { legend: { position: 'right' } },
+      plugins: {
+        legend: { position: 'right' },
+        tooltip: { mode: 'index', intersect: false }
+      },
       scales: {
         x: {
-          stacked: true,
           type: 'time',
-          time: { unit: 'month' },
+          stacked: true,
+          time: { unit: 'day' },
           ticks: { color: '#ccc' }
         },
         y: {
@@ -84,7 +86,7 @@ async function loadHodlWavesFromCSV() {
   });
 }
 
-loadHodlWavesFromCSV();
+loadHodlWaves();
 </script>
 
 </body>
