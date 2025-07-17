@@ -13,22 +13,7 @@
       margin: 0;
       padding: 0;
       display: flex;
-    }
-    main {
-      flex: 1;
-      padding-right: 300px; /* Room on the right */
-    }
-    .sidebar {
-      width: 300px;
-      background: #1c1c1c;
-      color: #ccc;
-      padding: 1rem;
-      position: fixed;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      overflow-y: auto;
-      border-left: 1px solid #333;
+      flex-direction: column;
     }
     header {
       background: #f7931a;
@@ -36,8 +21,13 @@
       padding: 1rem;
       text-align: center;
     }
+    main {
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+    }
     section {
-      padding: 2rem;
+      padding: 1rem;
       border-bottom: 1px solid #333;
     }
     h2 {
@@ -45,6 +35,31 @@
     }
     .tradingview-widget-container {
       margin-top: 1rem;
+    }
+    .sidebar {
+      background: #1c1c1c;
+      color: #ccc;
+      padding: 1rem;
+      border-top: 1px solid #333;
+    }
+    @media (min-width: 768px) {
+      body {
+        flex-direction: row;
+      }
+      main {
+        flex: 1;
+        padding-right: 300px;
+      }
+      .sidebar {
+        width: 300px;
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        overflow-y: auto;
+        border-left: 1px solid #333;
+        border-top: none;
+      }
     }
   </style>
 </head>
@@ -134,7 +149,7 @@ const datasets = [
 for (let i = 0; i < 90; i++) {
   const date = new Date();
   date.setDate(date.getDate() - (90 - i));
-  labels.push(date);
+  labels.push(date.toISOString().split('T')[0]);
 
   const parts = Array.from({length: datasets.length}, () => Math.random());
   const total = parts.reduce((a, b) => a + b);
@@ -149,6 +164,7 @@ new Chart(document.getElementById('hodlwavesChart').getContext('2d'), {
   options: {
     plugins: { legend: { position: 'right' } },
     responsive: true,
+    maintainAspectRatio: false,
     scales: {
       x: { stacked: true, ticks: { color: '#ccc' } },
       y: { stacked: true, min: 0, max: 100, ticks: { color: '#ccc' } }
