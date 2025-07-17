@@ -68,7 +68,7 @@
 <main>
   <header>
     <h1>Bitcoin Metrics Dashboard</h1>
-    <p>Live charts: BTC/USD, Dominance, Hash Rate, Difficulty, Mempool</p>
+    <p>Live charts: BTC/USD, Dominance, Difficulty, Mempool</p>
   </header>
 
   <!-- BTC/USD Price Chart -->
@@ -115,30 +115,6 @@
           "enable_publishing": false,
           "allow_symbol_change": false,
           "container_id": "btc_dominance"
-        });
-      </script>
-    </div>
-  </section>
-
-  <!-- Hash Rate -->
-  <section>
-    <h2>Bitcoin Hash Rate (CoinWarz)</h2>
-    <div class="tradingview-widget-container">
-      <div id="hashrate_chart"></div>
-      <script type="text/javascript">
-        new TradingView.widget({
-          "width": "100%",
-          "height": 500,
-          "symbol": "INDEX:BTC_HASHRATE",
-          "interval": "D",
-          "timezone": "Etc/UTC",
-          "theme": "dark",
-          "style": "1",
-          "locale": "en",
-          "toolbar_bg": "#f1f3f6",
-          "enable_publishing": false,
-          "allow_symbol_change": false,
-          "container_id": "hashrate_chart"
         });
       </script>
     </div>
