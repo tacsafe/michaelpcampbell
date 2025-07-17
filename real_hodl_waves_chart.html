@@ -2,73 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bitcoin HODL Waves (Real CSV Data)</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bitcoin Dashboard</title>
   <style>
     body {
-      background: #111;
-      color: #eee;
-      font-family: sans-serif;
       margin: 0;
       padding: 2rem;
+      font-family: sans-serif;
+      background: #111;
+      color: #fff;
     }
-    h1 {
+    h1, h2 {
       text-align: center;
-      color: orange;
+      color: #f7931a;
     }
-    canvas {
-      background: #222;
+    iframe {
+      display: block;
+      margin: 2rem auto;
+      border: none;
       border-radius: 8px;
-      padding: 1rem;
+      width: 100%;
+      max-width: 1000px;
+      background: #222;
+    }
+    .chart-section {
+      margin-bottom: 4rem;
     }
   </style>
 </head>
 <body>
-  <h1>Bitcoin HODL Waves (Real CSV Data)</h1>
-  <canvas id="hodlChart" width="1000" height="500"></canvas>
-  <script>
-    const ctx = document.getElementById('hodlChart').getContext('2d');
 
-    fetch('hodl_waves.csv')
-      .then(response => response.text())
-      .then(csv => {
-        const parsed = Papa.parse(csv, { header: true });
-        const labels = parsed.data.map(row => row.date).filter(d => d);
-        const ageBands = Object.keys(parsed.data[0]).filter(key => key !== 'date');
+  <h1>Bitcoin Market Dashboard</h1>
 
-        const datasets = ageBands.map((band, i) => ({
-          label: band,
-          data: parsed.data.map(row => parseFloat(row[band] || 0)),
-          backgroundColor: `hsl(${(i * 360) / ageBands.length}, 80%, 60%)`,
-          stack: 'stack1'
-        }));
+  <div class="chart-section">
+    <h2>Bitcoin Price Chart (Live)</h2>
+    <iframe src="https://s.tradingview.com/embed-widget/single-quote/?symbol=BITSTAMP:BTCUSD&colorTheme=dark" width="100%" height="110" allowtransparency="true" scrolling="no"></iframe>
+    <iframe src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?symbol=BITSTAMP:BTCUSD&locale=en&utm_source=chat.openai.com" width="100%" height="300"></iframe>
+  </div>
 
-        new Chart(ctx, {
-          type: 'bar',
-          data: { labels, datasets },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { position: 'right', labels: { color: '#eee' } },
-              title: {
-                display: false
-              }
-            },
-            scales: {
-              x: { ticks: { color: '#eee' }, stacked: true },
-              y: {
-                stacked: true,
-                ticks: {
-                  color: '#eee',
-                  callback: v => v + '%'
-                }
-              }
-            }
-          }
-        });
-      });
-  </script>
+  <div class="chart-section">
+    <h2>Fear & Greed Index</h2>
+    <iframe src="https://alternative.me/crypto/fear-and-greed-index/" width="100%" height="400"></iframe>
+  </div>
+
+  <div class="chart-section">
+    <h2>Bitcoin Network Hash Rate</h2>
+    <iframe src="https://www.blockchain.com/explorer/charts/hash-rate?view=all" width="100%" height="400"></iframe>
+  </div>
+
 </body>
 </html>
