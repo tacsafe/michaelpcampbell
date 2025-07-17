@@ -3,52 +3,159 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bitcoin Dashboard</title>
+  <title>Bitcoin Metrics Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      margin: 0;
-      padding: 2rem;
       font-family: sans-serif;
       background: #111;
-      color: #fff;
+      color: #eee;
+      margin: 0;
+      padding: 0;
+      display: flex;
     }
-    h1, h2 {
+    main {
+      flex: 1;
+      padding-right: 300px; /* Room on the right */
+    }
+    .sidebar {
+      width: 300px;
+      background: #1c1c1c;
+      color: #ccc;
+      padding: 1rem;
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      overflow-y: auto;
+      border-left: 1px solid #333;
+    }
+    header {
+      background: #f7931a;
+      color: black;
+      padding: 1rem;
       text-align: center;
+    }
+    section {
+      padding: 2rem;
+      border-bottom: 1px solid #333;
+    }
+    h2 {
       color: #f7931a;
     }
-    iframe {
-      display: block;
-      margin: 2rem auto;
-      border: none;
-      border-radius: 8px;
-      width: 100%;
-      max-width: 1000px;
-      background: #222;
-    }
-    .chart-section {
-      margin-bottom: 4rem;
+    .tradingview-widget-container {
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
 
-  <h1>Bitcoin Market Dashboard</h1>
+<main>
+  <header>
+    <h1>Bitcoin Metrics Dashboard</h1>
+    <p>Live charts: BTC/USD, Dominance, HODL Waves</p>
+  </header>
 
-  <div class="chart-section">
-    <h2>Bitcoin Price Chart (Live)</h2>
-    <iframe src="https://s.tradingview.com/embed-widget/single-quote/?symbol=BITSTAMP:BTCUSD&colorTheme=dark" width="100%" height="110" allowtransparency="true" scrolling="no"></iframe>
-    <iframe src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?symbol=BITSTAMP:BTCUSD&locale=en&utm_source=chat.openai.com" width="100%" height="300"></iframe>
-  </div>
+  <!-- BTC/USD Price Chart -->
+  <section>
+    <h2>BTC/USD Price Chart</h2>
+    <div class="tradingview-widget-container">
+      <div id="tradingview_chart"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+      <script type="text/javascript">
+        new TradingView.widget({
+          "width": "100%",
+          "height": 500,
+          "symbol": "BITSTAMP:BTCUSD",
+          "interval": "D",
+          "timezone": "Etc/UTC",
+          "theme": "dark",
+          "style": "1",
+          "locale": "en",
+          "toolbar_bg": "#f1f3f6",
+          "enable_publishing": false,
+          "allow_symbol_change": true,
+          "container_id": "tradingview_chart"
+        });
+      </script>
+    </div>
+  </section>
 
-  <div class="chart-section">
-    <h2>Fear & Greed Index</h2>
-    <iframe src="https://alternative.me/crypto/fear-and-greed-index/" width="100%" height="400"></iframe>
-  </div>
+  <!-- Bitcoin Dominance -->
+  <section>
+    <h2>Bitcoin Dominance</h2>
+    <div class="tradingview-widget-container">
+      <div id="btc_dominance"></div>
+      <script type="text/javascript">
+        new TradingView.widget({
+          "width": "100%",
+          "height": 500,
+          "symbol": "CRYPTOCAP:BTC.D",
+          "interval": "D",
+          "timezone": "Etc/UTC",
+          "theme": "dark",
+          "style": "1",
+          "locale": "en",
+          "toolbar_bg": "#f1f3f6",
+          "enable_publishing": false,
+          "allow_symbol_change": false,
+          "container_id": "btc_dominance"
+        });
+      </script>
+    </div>
+  </section>
 
-  <div class="chart-section">
-    <h2>Bitcoin Network Hash Rate</h2>
-    <iframe src="https://www.blockchain.com/explorer/charts/hash-rate?view=all" width="100%" height="400"></iframe>
-  </div>
+  <!-- HODL Waves (Simulated) -->
+  <section id="hodl-waves">
+    <h2>HODL Waves (Simulated)</h2>
+    <canvas id="hodlwavesChart" width="800" height="400"></canvas>
+  </section>
+</main>
+
+<!-- Right Sidebar -->
+<div class="sidebar">
+  <h3>Right Sidebar</h3>
+  <p>This is your 300px of space — for notes, links, widgets, or future dashboard features.</p>
+</div>
+
+<script>
+// Simulated HODL Waves
+const labels = [];
+const datasets = [
+  { label: '<1d', data: [], backgroundColor: 'rgba(255,99,132,0.6)', stack: 'waves' },
+  { label: '1d–1w', data: [], backgroundColor: 'rgba(54,162,235,0.6)', stack: 'waves' },
+  { label: '1w–1m', data: [], backgroundColor: 'rgba(255,206,86,0.6)', stack: 'waves' },
+  { label: '1m–3m', data: [], backgroundColor: 'rgba(75,192,192,0.6)', stack: 'waves' },
+  { label: '3m–6m', data: [], backgroundColor: 'rgba(153,102,255,0.6)', stack: 'waves' },
+  { label: '>1y', data: [], backgroundColor: 'rgba(255,159,64,0.6)', stack: 'waves' }
+];
+
+// Generate fake data
+for (let i = 0; i < 90; i++) {
+  const date = new Date();
+  date.setDate(date.getDate() - (90 - i));
+  labels.push(date);
+
+  const parts = Array.from({length: datasets.length}, () => Math.random());
+  const total = parts.reduce((a, b) => a + b);
+  const percents = parts.map(p => (p / total * 100).toFixed(2));
+
+  percents.forEach((val, j) => datasets[j].data.push(parseFloat(val)));
+}
+
+new Chart(document.getElementById('hodlwavesChart').getContext('2d'), {
+  type: 'bar',
+  data: { labels, datasets },
+  options: {
+    plugins: { legend: { position: 'right' } },
+    responsive: true,
+    scales: {
+      x: { stacked: true, ticks: { color: '#ccc' } },
+      y: { stacked: true, min: 0, max: 100, ticks: { color: '#ccc' } }
+    }
+  }
+});
+</script>
 
 </body>
 </html>
