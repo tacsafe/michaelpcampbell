@@ -2,94 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bitcoin HODL Waves (Embedded CSV)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bitcoin HODL Waves (Real CSV Data)</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     body {
-      font-family: sans-serif;
       background: #111;
       color: #eee;
+      font-family: sans-serif;
       margin: 0;
       padding: 2rem;
     }
     h1 {
-      color: #f7931a;
       text-align: center;
+      color: orange;
     }
     canvas {
       background: #222;
       border-radius: 8px;
       padding: 1rem;
-      max-width: calc(100% - 300px);
     }
   </style>
 </head>
 <body>
+  <h1>Bitcoin HODL Waves (Real CSV Data)</h1>
+  <canvas id="hodlChart" width="1000" height="500"></canvas>
+  <script>
+    const ctx = document.getElementById('hodlChart').getContext('2d');
 
-<h1>Bitcoin HODL Waves (Embedded CSV Data)</h1>
-<canvas id="hodlwavesChart" width="1000" height="500"></canvas>
+    fetch('hodl_waves.csv')
+      .then(response => response.text())
+      .then(csv => {
+        const parsed = Papa.parse(csv, { header: true });
+        const labels = parsed.data.map(row => row.date).filter(d => d);
+        const ageBands = Object.keys(parsed.data[0]).filter(key => key !== 'date');
 
-<script>
-const csvText = `
-date,<1d,1d-1w,1w-1m,1m-3m,3m-6m,6m-1y,1y-2y,2y-3y,3y-5y,>5y
-2024-07-01,2.5,4.1,10.3,8.9,7.2,12.4,15.1,13.7,11.8,14.0
-2024-07-02,2.4,4.0,10.2,8.8,7.3,12.5,15.0,13.8,11.9,14.1
-2024-07-03,2.3,3.9,10.1,8.7,7.4,12.6,14.9,13.9,12.0,14.2
-2024-07-04,2.6,4.2,10.4,8.9,7.1,12.3,15.2,13.6,11.7,14.0
-2024-07-05,2.7,4.3,10.5,9.0,7.0,12.2,15.3,13.5,11.6,13.9
-`;
+        const datasets = ageBands.map((band, i) => ({
+          label: band,
+          data: parsed.data.map(row => parseFloat(row[band] || 0)),
+          backgroundColor: `hsl(${(i * 360) / ageBands.length}, 80%, 60%)`,
+          stack: 'stack1'
+        }));
 
-const rows = csvText.trim().split('\n').map(r => r.split(','));
-const headers = rows[0].slice(1);
-const labels = [];
-const datasets = headers.map(() => []);
-
-rows.slice(1).forEach(row => {
-  labels.push(new Date(row[0]));
-  row.slice(1).forEach((val, i) => {
-    datasets[i].push(parseFloat(val));
-  });
-});
-
-const colors = headers.map((_, i) => `hsl(${(i * 36) % 360}, 65%, 50%)`);
-
-new Chart(document.getElementById('hodlwavesChart').getContext('2d'), {
-  type: 'bar',
-  data: {
-    labels,
-    datasets: headers.map((label, i) => ({
-      label,
-      data: datasets[i],
-      backgroundColor: colors[i],
-      stack: 'waves',
-      borderWidth: 0
-    }))
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { position: 'right' },
-      tooltip: { mode: 'index', intersect: false }
-    },
-    scales: {
-      x: {
-        type: 'time',
-        stacked: true,
-        time: { unit: 'day' },
-        ticks: { color: '#ccc' }
-      },
-      y: {
-        stacked: true,
-        min: 0,
-        max: 100,
-        ticks: { color: '#ccc' }
-      }
-    }
-  }
-});
-</script>
-
+        new Chart(ctx, {
+          type: 'bar',
+          data: { labels, datasets },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'right', labels: { color: '#eee' } },
+              title: {
+                display: false
+              }
+            },
+            scales: {
+              x: { ticks: { color: '#eee' }, stacked: true },
+              y: {
+                stacked: true,
+                ticks: {
+                  color: '#eee',
+                  callback: v => v + '%'
+                }
+              }
+            }
+          }
+        });
+      });
+  </script>
 </body>
 </html>
