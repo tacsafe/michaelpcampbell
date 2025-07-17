@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bitcoin HODL Waves (Static CSV)</title>
+  <title>Bitcoin HODL Waves (Embedded CSV)</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <style>
@@ -28,65 +28,67 @@
 </head>
 <body>
 
-<h1>Bitcoin HODL Waves (Local CSV Data)</h1>
+<h1>Bitcoin HODL Waves (Embedded CSV Data)</h1>
 <canvas id="hodlwavesChart" width="1000" height="500"></canvas>
 
 <script>
-async function loadHodlWaves() {
-  const response = await fetch('./hodl_waves.csv');
-  const text = await response.text();
-  const rows = text.trim().split('\n').map(r => r.split(','));
+const csvText = `
+date,<1d,1d-1w,1w-1m,1m-3m,3m-6m,6m-1y,1y-2y,2y-3y,3y-5y,>5y
+2024-07-01,2.5,4.1,10.3,8.9,7.2,12.4,15.1,13.7,11.8,14.0
+2024-07-02,2.4,4.0,10.2,8.8,7.3,12.5,15.0,13.8,11.9,14.1
+2024-07-03,2.3,3.9,10.1,8.7,7.4,12.6,14.9,13.9,12.0,14.2
+2024-07-04,2.6,4.2,10.4,8.9,7.1,12.3,15.2,13.6,11.7,14.0
+2024-07-05,2.7,4.3,10.5,9.0,7.0,12.2,15.3,13.5,11.6,13.9
+`;
 
-  const headers = rows[0].slice(1); // skip 'date'
-  const labels = [];
-  const datasets = headers.map(() => []);
+const rows = csvText.trim().split('\n').map(r => r.split(','));
+const headers = rows[0].slice(1);
+const labels = [];
+const datasets = headers.map(() => []);
 
-  rows.slice(1).forEach(row => {
-    labels.push(new Date(row[0]));
-    row.slice(1).forEach((val, i) => {
-      datasets[i].push(parseFloat(val));
-    });
+rows.slice(1).forEach(row => {
+  labels.push(new Date(row[0]));
+  row.slice(1).forEach((val, i) => {
+    datasets[i].push(parseFloat(val));
   });
+});
 
-  const colors = headers.map((_, i) => `hsl(${(i * 36) % 360}, 65%, 50%)`);
+const colors = headers.map((_, i) => `hsl(${(i * 36) % 360}, 65%, 50%)`);
 
-  new Chart(document.getElementById('hodlwavesChart').getContext('2d'), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: headers.map((label, i) => ({
-        label,
-        data: datasets[i],
-        backgroundColor: colors[i],
-        stack: 'waves',
-        borderWidth: 0
-      }))
+new Chart(document.getElementById('hodlwavesChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: headers.map((label, i) => ({
+      label,
+      data: datasets[i],
+      backgroundColor: colors[i],
+      stack: 'waves',
+      borderWidth: 0
+    }))
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'right' },
+      tooltip: { mode: 'index', intersect: false }
     },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'right' },
-        tooltip: { mode: 'index', intersect: false }
+    scales: {
+      x: {
+        type: 'time',
+        stacked: true,
+        time: { unit: 'day' },
+        ticks: { color: '#ccc' }
       },
-      scales: {
-        x: {
-          type: 'time',
-          stacked: true,
-          time: { unit: 'day' },
-          ticks: { color: '#ccc' }
-        },
-        y: {
-          stacked: true,
-          min: 0,
-          max: 100,
-          ticks: { color: '#ccc' }
-        }
+      y: {
+        stacked: true,
+        min: 0,
+        max: 100,
+        ticks: { color: '#ccc' }
       }
     }
-  });
-}
-
-loadHodlWaves();
+  }
+});
 </script>
 
 </body>
