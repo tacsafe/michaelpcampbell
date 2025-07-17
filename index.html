@@ -198,9 +198,12 @@ const mempoolChart = new Chart(document.getElementById('mempoolChart'), {
 
 async function loadHistoricalData() {
   try {
+    // Fetch Bitcoin Difficulty
     const difficultyRes = await fetch("https://api.blockchair.com/bitcoin/blocks?limit=30&fields=difficulty,time");
-    const difficultyData = await difficultyRes.json();
-    const difficultyPoints = difficultyData.data.map(block => ({
+    const difficultyJson = await difficultyRes.json();
+    const difficultyArray = Object.values(difficultyJson.data); // Convert keyed object to array
+
+    const difficultyPoints = difficultyArray.map(block => ({
       x: new Date(block.time),
       y: block.difficulty
     })).reverse();
@@ -209,6 +212,7 @@ async function loadHistoricalData() {
     difficultyChart.data.datasets[0].data = difficultyPoints.map(p => p.y);
     difficultyChart.update();
 
+    // Fetch Mempool Size
     const mempoolRes = await fetch("https://mempool.space/api/mempool/recent");
     const mempoolData = await mempoolRes.json();
     const mempoolPoints = mempoolData.map(entry => ({
