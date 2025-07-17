@@ -35,6 +35,14 @@
     }
     .tradingview-widget-container {
       margin-top: 1rem;
+      height: 500px;
+    }
+    .tradingview-widget-container > div {
+      height: 100% !important;
+    }
+    canvas {
+      max-width: 100%;
+      height: 500px !important;
     }
     .sidebar {
       background: #1c1c1c;
@@ -80,7 +88,7 @@
       <script type="text/javascript">
         new TradingView.widget({
           "width": "100%",
-          "height": 500,
+          "height": "100%",
           "symbol": "BITSTAMP:BTCUSD",
           "interval": "D",
           "timezone": "Etc/UTC",
@@ -104,7 +112,7 @@
       <script type="text/javascript">
         new TradingView.widget({
           "width": "100%",
-          "height": 500,
+          "height": "100%",
           "symbol": "CRYPTOCAP:BTC.D",
           "interval": "D",
           "timezone": "Etc/UTC",
@@ -120,16 +128,16 @@
     </div>
   </section>
 
-  <!-- Bitcoin Difficulty (static chart image) -->
+  <!-- Bitcoin Difficulty (Live Data Chart.js) -->
   <section>
-    <h2>Bitcoin Difficulty (Image)</h2>
-    <img src="https://bitinfocharts.com/img/charts/bitcoin-difficulty.png" alt="Bitcoin Difficulty" width="100%" />
+    <h2>Bitcoin Difficulty (Live)</h2>
+    <canvas id="difficultyChart"></canvas>
   </section>
 
-  <!-- Mempool Size (Image) -->
+  <!-- Mempool Size (Live Data Chart.js) -->
   <section>
-    <h2>Mempool Size (tx count)</h2>
-    <img src="https://jochen-hoenicke.de/queue/queue.png" alt="Mempool Size" width="100%" />
+    <h2>Mempool Size (Live)</h2>
+    <canvas id="mempoolChart"></canvas>
   </section>
 </main>
 
@@ -138,6 +146,81 @@
   <h3>Right Sidebar</h3>
   <p>This is your 300px of space — for notes, links, widgets, or future dashboard features.</p>
 </div>
+
+<script>
+async function updateCharts() {
+  const difficultyResponse = await fetch("https://api.blockchain.info/q/getdifficulty");
+  const mempoolResponse = await fetch("https://mempool.space/api/mempool");
+
+  const difficulty = await difficultyResponse.text();
+  const mempool = await mempoolResponse.json();
+
+  const now = new Date().toLocaleTimeString();
+
+  difficultyChart.data.labels.push(now);
+  difficultyChart.data.datasets[0].data.push(parseFloat(difficulty));
+  if (difficultyChart.data.labels.length > 10) {
+    difficultyChart.data.labels.shift();
+    difficultyChart.data.datasets[0].data.shift();
+  }
+  difficultyChart.update();
+
+  mempoolChart.data.labels.push(now);
+  mempoolChart.data.datasets[0].data.push(mempool.count);
+  if (mempoolChart.data.labels.length > 10) {
+    mempoolChart.data.labels.shift();
+    mempoolChart.data.datasets[0].data.shift();
+  }
+  mempoolChart.update();
+}
+
+const difficultyChart = new Chart(document.getElementById('difficultyChart'), {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Difficulty',
+      backgroundColor: '#f7931a',
+      borderColor: '#f7931a',
+      data: [],
+      fill: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: '#eee' } } },
+    scales: {
+      x: { ticks: { color: '#ccc' } },
+      y: { ticks: { color: '#ccc' } }
+    }
+  }
+});
+
+const mempoolChart = new Chart(document.getElementById('mempoolChart'), {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Mempool Tx Count',
+      backgroundColor: '#50fa7b',
+      borderColor: '#50fa7b',
+      data: [],
+      fill: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: '#eee' } } },
+    scales: {
+      x: { ticks: { color: '#ccc' } },
+      y: { ticks: { color: '#ccc' } }
+    }
+  }
+});
+
+setInterval(updateCharts, 60000);
+updateCharts();
+</script>
 
 </body>
 </html>
