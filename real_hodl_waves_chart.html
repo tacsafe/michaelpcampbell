@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bitcoin HODL Waves (Real Data)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #111;
+      color: #eee;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 {
+      color: #f7931a;
+      text-align: center;
+    }
+    canvas {
+      background: #222;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Bitcoin HODL Waves (Real Data from GitHub)</h1>
+<canvas id="hodlwavesChart" width="1000" height="500"></canvas>
+
+<script>
+async function loadHodlWavesFromCSV() {
+  const response = await fetch('https://raw.githubusercontent.com/holiman/lookintobitcoin-data/main/data/hodl_waves.csv');
+  const text = await response.text();
+  const rows = text.trim().split('\n').map(r => r.split(','));
+
+  const headers = rows[0];
+  const dateIndex = headers.indexOf('Date');
+  const ageBands = headers.slice(1);
+
+  const labels = [];
+  const bandData = ageBands.map(() => []);
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const date = new Date(row[dateIndex]);
+    labels.push(date);
+    for (let j = 0; j < ageBands.length; j++) {
+      bandData[j].push(parseFloat(row[j + 1]) || 0);
+    }
+  }
+
+  const datasets = ageBands.map((label, i) => ({
+    label,
+    data: bandData[i],
+    backgroundColor: `hsl(${i * 36}, 70%, 50%)`,
+    stack: 'waves',
+    borderWidth: 0
+  }));
+
+  new Chart(document.getElementById('hodlwavesChart').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'right' } },
+      scales: {
+        x: {
+          stacked: true,
+          type: 'time',
+          time: { unit: 'month' },
+          ticks: { color: '#ccc' }
+        },
+        y: {
+          stacked: true,
+          min: 0,
+          max: 100,
+          ticks: { color: '#ccc' }
+        }
+      }
+    }
+  });
+}
+
+loadHodlWavesFromCSV();
+</script>
+
+</body>
+</html>
