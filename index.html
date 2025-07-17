@@ -198,30 +198,24 @@ const mempoolChart = new Chart(document.getElementById('mempoolChart'), {
 
 async function loadHistoricalData() {
   try {
-    // Fetch Bitcoin Difficulty
-    const difficultyRes = await fetch("https://api.blockchair.com/bitcoin/blocks?limit=30&fields=difficulty,time");
+    // Bitcoin Difficulty (historical approximation using Blockchain.info)
+    const difficultyRes = await fetch("https://blockchain.info/charts/difficulty?timespan=90days&format=json");
     const difficultyJson = await difficultyRes.json();
-    const difficultyArray = Object.values(difficultyJson.data); // Convert keyed object to array
-
-    const difficultyPoints = difficultyArray.map(block => ({
-      x: new Date(block.time),
-      y: block.difficulty
-    })).reverse();
+    const difficultyPoints = difficultyJson.values.map(entry => ({
+      x: new Date(entry.x * 1000),
+      y: entry.y
+    }));
 
     difficultyChart.data.labels = difficultyPoints.map(p => p.x.toLocaleDateString());
     difficultyChart.data.datasets[0].data = difficultyPoints.map(p => p.y);
     difficultyChart.update();
 
-    // Fetch Mempool Size
-    const mempoolRes = await fetch("https://mempool.space/api/mempool/recent");
+    // Mempool TX Count (current value only)
+    const mempoolRes = await fetch("https://mempool.space/api/mempool");
     const mempoolData = await mempoolRes.json();
-    const mempoolPoints = mempoolData.map(entry => ({
-      x: new Date(entry.time * 1000),
-      y: entry.count
-    })).reverse();
-
-    mempoolChart.data.labels = mempoolPoints.map(p => p.x.toLocaleTimeString());
-    mempoolChart.data.datasets[0].data = mempoolPoints.map(p => p.y);
+    const now = new Date();
+    mempoolChart.data.labels = [now.toLocaleTimeString()];
+    mempoolChart.data.datasets[0].data = [mempoolData.count];
     mempoolChart.update();
 
   } catch (err) {
@@ -230,7 +224,7 @@ async function loadHistoricalData() {
 }
 
 loadHistoricalData();
-setInterval(loadHistoricalData, 600000); // Update every 10 minutes
+setInterval(loadHistoricalData, 300000); // Refresh every 5 minutes
 </script>
 
 </body>
