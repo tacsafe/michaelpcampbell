@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bitcoin Retirement Calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+    .container { display: flex; flex-wrap: wrap; max-width: 1200px; margin: auto; padding: 20px; gap: 20px; }
+    .form-container { flex: 1 1 360px; min-width: 320px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .form-container label { display: block; margin-top: 10px; font-size: 0.9em; }
+    .form-container .slider-label { display: flex; align-items: center; gap: 10px; }
+    .form-container input[type=number], .form-container input[type=text] { width: 100%; padding: 6px; font-size: 0.9em; margin-top: 3px; box-sizing: border-box; }
+    .form-container input[type=range] { flex: 1; margin: 5px 0; }
+    .chart-container { flex: 2 1 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); min-width: 300px; }
+    .field-group { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background-color: #fafafa; }
+    .field-group h3 { margin-top: 0; font-size: 1em; background: #eee; padding: 5px 10px; border-radius: 3px; }
+    #result { margin-top: 20px; font-weight: bold; color: #333; }
+    #summary { margin-top: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    canvas { margin-top: 20px; width: 100% !important; height: auto !important; }
+    @media (max-width: 768px) {
+      .container { flex-direction: column; align-items: center; }
+      .chart-container, .form-container { width: 100%; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center; color:#333">Bitcoin Retirement Calculator</h1>
+  <div class="container">
+    <div class="form-container">
+      <div class="field-group">
+        <h3>General Inputs</h3>
+        <label>Current Age: <input type="number" id="currentAge" value="50"></label>
+        <label>Retirement Age: <input type="number" id="retirementAge" value="65"></label>
+        <label>Life Expectancy: <input type="number" id="lifeExpectancy" value="86"></label>
+        <label>Desired Annual Retirement Income ($): <input type="text" id="desiredIncome" value="70000"></label>
+        <label>Effective Income Tax Rate (%): <input type="number" id="incomeTaxRate" value="0" readonly></label>
+        <div class="slider-label">
+          <label>Inflation Rate (%):</label>
+          <input type="range" id="inflationRate" value="3" min="0" max="10" step="0.1">
+          <input type="number" id="inflationRateOutput" value="3" style="width:60px">
+        </div>
+      </div>
+      <div class="field-group">
+        <h3>₿ Bitcoin</h3>
+        <label>Bitcoin Price Today ($): <input type="text" id="btcPrice" value="70000"></label>
+        <label>₿ Current Bitcoin Holdings (₿): <input type="text" id="currentSavings" value="1.1"></label>
+        <label>Annual Bitcoin Purchase ($): <input type="text" id="annualBuyUSD" value="70000"></label>
+        <div class="slider-label">
+          <label>Bitcoin CAGR Before Retirement (%):</label>
+          <input type="range" id="bitcoinCagr" value="20" min="0" max="50" step="0.1">
+          <input type="number" id="bitcoinCagrOutput" value="20" style="width:60px">
+        </div>
+        <div class="slider-label">
+          <label>Bitcoin CAGR During Retirement (%):</label>
+          <input type="range" id="retirementCagr" value="6" min="0" max="20" step="0.1">
+          <input type="number" id="retirementCagrOutput" value="6" style="width:60px">
+        </div>
+      </div>
+      <div class="field-group">
+        <h3>401k/Retirement</h3>
+        <label>401k Starting Balance ($): <input type="text" id="traditionalStarting" value="70000"></label>
+        <label>Annual Contribution ($): <input type="text" id="traditionalAnnual" value="70000"></label>
+        <div class="slider-label">
+          <label>401k CAGR (%):</label>
+          <input type="range" id="traditionalCagr" value="7" min="0" max="20" step="0.1">
+          <input type="number" id="traditionalCagrOutput" value="7" style="width:60px">
+        </div>
+      </div>
+      <div id="result"></div>
+    </div>
+    <div class="chart-container">
+      <canvas id="btcValueChart"></canvas>
+      <div id="summary">
+        <h3>Retirement Summary</h3>
+        <p id="monthlyIncome"></p>
+        <p id="monthlyIncomeAfterTax"></p>
+        <p id="finalPortfolio"></p>
+      </div>
+    </div>
+  </div>
+  <script>
+    function parseNumber(val) {
+      return parseFloat(val.replace(/,/g, '')) || 0;
+    }
+
+    function formatNumber(num) {
+      return Number(num).toLocaleString();
+    }
+
+    function getTaxRate(income) {
+      const brackets = [
+        { limit: 11000, rate: 0.1 },
+        { limit: 44725, rate: 0.12 },
+        { limit: 95375, rate: 0.22 },
+        { limit: 182100, rate: 0.24 },
+        { limit: 231250, rate: 0.32 },
+        { limit: 578125, rate: 0.35 },
+        { limit: Infinity, rate: 0.37 }
+      ];
+
+      let tax = 0;
+      let lastLimit = 0;
+
+      for (let i = 0; i < brackets.length; i++) {
+        const bracket = brackets[i];
+        if (income > bracket.limit) {
+          tax += (bracket.limit - lastLimit) * bracket.rate;
+          lastLimit = bracket.limit;
+        } else {
+          tax += (income - lastLimit) * bracket.rate;
+          break;
+        }
+      }
+
+      return (tax / income) * 100;
+    }
+
+    document.querySelectorAll('input[type="text"]').forEach(input => {
+      input.addEventListener('blur', e => {
+        let val = parseNumber(e.target.value);
+        e.target.value = formatNumber(val);
+        if (e.target.id === 'desiredIncome') {
+          const taxRate = getTaxRate(val);
+          document.getElementById('incomeTaxRate').value = taxRate.toFixed(1);
+        }
+        calculateRetirement();
+      });
+    });
+
+    document.querySelectorAll('input[type="range"]').forEach(slider => {
+      const output = document.getElementById(slider.id + 'Output');
+      if (output) {
+        slider.addEventListener('input', () => {
+          output.value = slider.value;
+        });
+        slider.addEventListener('change', calculateRetirement);
+        output.addEventListener('change', () => {
+          slider.value = output.value;
+          calculateRetirement();
+        });
+      }
+    });
+
+    let chart;
+
+    function calculateRetirement() {
+      const ctx = document.getElementById('btcValueChart').getContext('2d');
+      const ageStart = parseInt(document.getElementById('currentAge').value);
+      const ageRetire = parseInt(document.getElementById('retirementAge').value);
+      const ageEnd = parseInt(document.getElementById('lifeExpectancy').value);
+      const years = ageEnd - ageStart + 1;
+      const labels = Array.from({length: years}, (_, i) => ageStart + i);
+
+      const btcHoldings = parseNumber(document.getElementById('currentSavings').value);
+      const btcCagr = parseFloat(document.getElementById('bitcoinCagr').value) / 100;
+      const btcRetCagr = parseFloat(document.getElementById('retirementCagr').value) / 100;
+      const btcPrice = parseNumber(document.getElementById('btcPrice').value);
+      const annualBuyUSD = parseNumber(document.getElementById('annualBuyUSD').value);
+      const tradStart = parseNumber(document.getElementById('traditionalStarting').value);
+      const tradAnnual = parseNumber(document.getElementById('traditionalAnnual').value);
+      const tradCagr = parseFloat(document.getElementById('traditionalCagr').value) / 100;
+      const inflationRate = parseFloat(document.getElementById('inflationRate').value) / 100;
+      const desiredIncome = parseNumber(document.getElementById('desiredIncome').value);
+      const taxRate = parseFloat(document.getElementById('incomeTaxRate').value) / 100;
+
+      const afterTaxIncome = desiredIncome * (1 - taxRate);
+
+      const btcGrowth = [], tradGrowth = [], inflationLine = [], totalPortfolio = [];
+      let btcBalance = btcHoldings * btcPrice;
+      let tradBalance = tradStart;
+      let retirementYearIndex = null;
+
+      for (let i = 0; i < years; i++) {
+        const age = ageStart + i;
+        const isRetired = age >= ageRetire;
+        const btcCagrToUse = isRetired ? btcRetCagr : btcCagr;
+
+        btcBalance *= (1 + btcCagrToUse);
+        tradBalance *= (1 + tradCagr);
+
+        if (!isRetired) {
+          btcBalance += annualBuyUSD;
+          tradBalance += tradAnnual;
+        } else {
+          if (retirementYearIndex === null) retirementYearIndex = i;
+          const total = btcBalance + tradBalance;
+          const btcShare = total ? btcBalance / total : 0.5;
+          const tradShare = 1 - btcShare;
+
+          btcBalance -= desiredIncome * btcShare;
+          tradBalance -= desiredIncome * tradShare;
+        }
+
+        btcGrowth.push(Math.max(btcBalance, 0));
+        tradGrowth.push(Math.max(tradBalance, 0));
+        inflationLine.push(120000 * Math.pow(1 + inflationRate, i));
+        totalPortfolio.push(Math.max(btcBalance + tradBalance, 0));
+      }
+
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: '₿ Portfolio ($)', data: btcGrowth, borderColor: 'blue', backgroundColor: 'rgba(0,0,255,0.2)', fill: true, pointRadius: 2 },
+            { label: '401k Portfolio ($)', data: tradGrowth, borderColor: 'green', backgroundColor: 'rgba(0,255,0,0.2)', fill: true, pointRadius: 2 },
+            { label: 'Inflation Benchmark ($)', data: inflationLine, borderColor: 'red', backgroundColor: 'rgba(255,0,0,0.1)', fill: true, pointRadius: 2, borderDash: [5, 5] },
+            { label: 'Total Portfolio ($)', data: totalPortfolio, borderColor: 'black', backgroundColor: 'rgba(0,0,0,0.05)', fill: true, pointRadius: 2 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const index = context.dataIndex;
+                  return [
+                    `Total Portfolio: $${formatNumber(totalPortfolio[index].toFixed(0))}`,
+                    `401k: $${formatNumber(tradGrowth[index].toFixed(0))}`,
+                    `₿ BTC: $${formatNumber(btcGrowth[index].toFixed(0))}`,
+                    `Inflation Benchmark: $${formatNumber(inflationLine[index].toFixed(0))}`
+                  ];
+                }
+              }
+            }
+          },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      const monthlyIncome = (desiredIncome / 12).toFixed(2);
+      const monthlyIncomeAfterTax = (afterTaxIncome / 12).toFixed(2);
+      const finalPortfolio = totalPortfolio[totalPortfolio.length - 1];
+
+      document.getElementById('monthlyIncome').innerText = `Monthly Desired Income: $${formatNumber(monthlyIncome)}`;
+      document.getElementById('monthlyIncomeAfterTax').innerText = `Monthly Income After Tax: $${formatNumber(monthlyIncomeAfterTax)}`;
+      document.getElementById('finalPortfolio').innerText = `Portfolio at Age ${ageEnd}: $${formatNumber(finalPortfolio.toFixed(0))}`;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const desiredIncome = parseNumber(document.getElementById('desiredIncome').value);
+      document.getElementById('incomeTaxRate').value = getTaxRate(desiredIncome).toFixed(1);
+      calculateRetirement();
+    });
+  </script>
+</body>
+</html>
