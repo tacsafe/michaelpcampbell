@@ -1,231 +1,351 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bitcoin Metrics Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #111;
-      color: #eee;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-    }
-    header {
-      background: #f7931a;
-      color: black;
-      padding: 1rem;
-      text-align: center;
-    }
-    main {
-      display: flex;
-      flex-direction: column;
-      padding: 1rem;
-    }
-    section {
-      padding: 1rem;
-      border-bottom: 1px solid #333;
-    }
-    h2 {
-      color: #f7931a;
-    }
-    .tradingview-widget-container {
-      margin-top: 1rem;
-      height: 500px;
-    }
-    .tradingview-widget-container > div {
-      height: 500px !important;
-    }
-    canvas {
-      display: block;
-      width: 100% !important;
-      max-width: 100%;
-      height: 500px !important;
-    }
-    .sidebar {
-      background: #1c1c1c;
-      color: #ccc;
-      padding: 1rem;
-      border-top: 1px solid #333;
-    }
-    @media (min-width: 768px) {
-      body {
-        flex-direction: row;
-      }
-      main {
-        flex: 1;
-        padding-right: 300px;
-      }
-      .sidebar {
-        width: 300px;
-        position: fixed;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        overflow-y: auto;
-        border-left: 1px solid #333;
-        border-top: none;
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bitcoin Metrics Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body {
+font-family: sans-serif;
+background: #111;
+color: #eee;
+margin: 0;
+padding: 0;
+display: flex;
+flex-direction: column;
+min-height: 100vh;
+}
+header {
+background: #f7931a;
+color: black;
+padding: 1rem;
+text-align: center;
+}
+main {
+flex: 1;
+padding: 1rem;
+}
+section {
+padding: 1rem;
+border-bottom: 1px solid #333;
+}
+h2 {
+color: #f7931a;
+margin-bottom: 0.5rem;
+}
+.tradingview-widget-container, canvas {
+width: 100% !important;
+height: 400px !important;
+max-width: 100%;
+}
+.sidebar {
+background: #1c1c1c;
+color: #ccc;
+padding: 1rem;
+border-top: 1px solid #333;
+}
+.error {
+color: #ff5555;
+font-size: 0.9rem;
+margin-top: 0.5rem;
+}
+@media (min-width: 768px) {
+body {
+flex-direction: row;
+}
+main {
+padding-right: 300px;
+}
+.sidebar {
+width: 300px;
+position: fixed;
+right: 0;
+top: 0;
+bottom: 0;
+overflow-y: auto;
+border-left: 1px solid #333;
+border-top: none;
+}
+.tradingview-widget-container, canvas {
+height: 500px !important;
+}
+}
+</style>
 </head>
 <body>
-
 <main>
-  <header>
-    <h1>Bitcoin Metrics Dashboard</h1>
-    <p>Live charts: BTC/USD, Dominance, Difficulty, Mempool</p>
-  </header>
-
-  <!-- BTC/USD Price Chart -->
-  <section>
-    <h2>BTC/USD Price Chart</h2>
-    <div class="tradingview-widget-container">
-      <div id="tradingview_chart"></div>
-    </div>
-  </section>
-
-  <!-- Bitcoin Dominance -->
-  <section>
-    <h2>Bitcoin Dominance</h2>
-    <div class="tradingview-widget-container">
-      <div id="btc_dominance"></div>
-    </div>
-  </section>
-
-  <!-- Bitcoin Difficulty (Live Data Chart.js) -->
-  <section>
-    <h2>Bitcoin Difficulty (Live)</h2>
-    <canvas id="difficultyChart"></canvas>
-  </section>
-
-  <!-- Mempool Size (Live Data Chart.js) -->
-  <section>
-    <h2>Mempool Size (Live)</h2>
-    <canvas id="mempoolChart"></canvas>
-  </section>
-</main>
-
-<!-- Right Sidebar -->
-<div class="sidebar">
-  <h3>Right Sidebar</h3>
-  <p>This is your 300px of space — for notes, links, widgets, or future dashboard features.</p>
+<header>
+<h1>Bitcoin Metrics Dashboard</h1>
+<p>Live charts: BTC/USD, Dominance, Difficulty, Hash Rate, US M2, Mempool</p>
+</header>
+<section>
+<h2>BTC/USD Price Chart</h2>
+<div class="tradingview-widget-container">
+<div id="tradingview_chart"></div>
 </div>
-
+<div id="price-error" class="error"></div>
+</section>
+<section>
+<h2>Bitcoin Dominance</h2>
+<div class="tradingview-widget-container">
+<div id="btc_dominance"></div>
+</div>
+<div id="dominance-error" class="error"></div>
+</section>
+<section>
+<h2>Bitcoin Difficulty</h2>
+<canvas id="difficultyChart"></canvas>
+<div id="difficulty-error" class="error"></div>
+</section>
+<section>
+<h2>Bitcoin Hash Rate</h2>
+<canvas id="hashRateChart"></canvas>
+<div id="hashrate-error" class="error"></div>
+</section>
+<section>
+<h2>US M2 Money Supply</h2>
+<div class="tradingview-widget-container">
+<div id="us_m2"></div>
+</div>
+<div id="usm2-error" class="error"></div>
+</section>
+<section>
+<h2>Mempool Size</h2>
+<canvas id="mempoolChart"></canvas>
+<div id="mempool-error" class="error"></div>
+</section>
+</main>
+<div class="sidebar">
+<h3>Live Stats</h3>
+<p>Latest BTC Price: <span id="latest-price">Loading...</span></p>
+</div>
 <script src="https://s3.tradingview.com/tv.js"></script>
 <script>
+// Initialize TradingView widgets
 new TradingView.widget({
-  "width": "100%",
-  "height": "500",
-  "symbol": "BITSTAMP:BTCUSD",
-  "interval": "D",
-  "timezone": "Etc/UTC",
-  "theme": "dark",
-  "style": "1",
-  "locale": "en",
-  "toolbar_bg": "#f1f3f6",
-  "enable_publishing": false,
-  "allow_symbol_change": true,
-  "container_id": "tradingview_chart"
+width: "100%",
+height: "100%",
+symbol: "BITSTAMP:BTCUSD",
+interval: "D",
+timezone: "Etc/UTC",
+theme: "dark",
+style: "1",
+locale: "en",
+toolbar_bg: "#f1f3f6",
+enable_publishing: false,
+allow_symbol_change: true,
+container_id: "tradingview_chart"
 });
-
 new TradingView.widget({
-  "width": "100%",
-  "height": "500",
-  "symbol": "CRYPTOCAP:BTC.D",
-  "interval": "D",
-  "timezone": "Etc/UTC",
-  "theme": "dark",
-  "style": "1",
-  "locale": "en",
-  "toolbar_bg": "#f1f3f6",
-  "enable_publishing": false,
-  "allow_symbol_change": false,
-  "container_id": "btc_dominance"
+width: "100%",
+height: "100%",
+symbol: "CRYPTOCAP:BTC.D",
+interval: "D",
+timezone: "Etc/UTC",
+theme: "dark",
+style: "1",
+locale: "en",
+toolbar_bg: "#f1f3f6",
+enable_publishing: false,
+allow_symbol_change: false,
+container_id: "btc_dominance"
 });
-</script>
-
-<script>
+new TradingView.widget({
+width: "100%",
+height: "100%",
+symbol: "FRED:M2SL",
+interval: "M",
+timezone: "Etc/UTC",
+theme: "dark",
+style: "1",
+locale: "en",
+toolbar_bg: "#f1f3f6",
+enable_publishing: false,
+allow_symbol_change: false,
+container_id: "us_m2"
+});
+// Chart.js initialization
 const difficultyChart = new Chart(document.getElementById('difficultyChart'), {
-  type: 'line',
-  data: {
-    labels: [],
-    datasets: [{
-      label: 'Difficulty',
-      backgroundColor: '#f7931a',
-      borderColor: '#f7931a',
-      data: [],
-      fill: false
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: '#eee' } } },
-    scales: {
-      x: { ticks: { color: '#ccc' } },
-      y: { ticks: { color: '#ccc' } }
-    }
-  }
-});
-
-const mempoolChart = new Chart(document.getElementById('mempoolChart'), {
-  type: 'line',
-  data: {
-    labels: [],
-    datasets: [{
-      label: 'Mempool Tx Count',
-      backgroundColor: '#50fa7b',
-      borderColor: '#50fa7b',
-      data: [],
-      fill: false
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: '#eee' } } },
-    scales: {
-      x: { ticks: { color: '#ccc' } },
-      y: { ticks: { color: '#ccc' } }
-    }
-  }
-});
-
-async function loadHistoricalData() {
-  try {
-    // Bitcoin Difficulty (historical approximation using Blockchain.info)
-    const difficultyRes = await fetch("https://blockchain.info/charts/difficulty?timespan=90days&format=json");
-    const difficultyJson = await difficultyRes.json();
-    const difficultyPoints = difficultyJson.values.map(entry => ({
-      x: new Date(entry.x * 1000),
-      y: entry.y
-    }));
-
-    difficultyChart.data.labels = difficultyPoints.map(p => p.x.toLocaleDateString());
-    difficultyChart.data.datasets[0].data = difficultyPoints.map(p => p.y);
-    difficultyChart.update();
-
-    // Mempool TX Count (current value only)
-    const mempoolRes = await fetch("https://mempool.space/api/mempool");
-    const mempoolData = await mempoolRes.json();
-    const now = new Date();
-    mempoolChart.data.labels = [now.toLocaleTimeString()];
-    mempoolChart.data.datasets[0].data = [mempoolData.count];
-    mempoolChart.update();
-
-  } catch (err) {
-    console.error('Error loading historical data:', err);
-  }
+type: 'line',
+data: {
+labels: [],
+datasets: [{
+label: 'Difficulty',
+backgroundColor: '#f7931a',
+borderColor: '#f7931a',
+data: [],
+fill: false,
+tension: 0.3
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: { legend: { labels: { color: '#eee' } } },
+scales: {
+x: { ticks: { color: '#ccc' } },
+y: { ticks: { color: '#ccc' }, beginAtZero: false }
 }
-
-loadHistoricalData();
-setInterval(loadHistoricalData, 300000); // Refresh every 5 minutes
+}
+});
+const hashRateChart = new Chart(document.getElementById('hashRateChart'), {
+type: 'line',
+data: {
+labels: [],
+datasets: [{
+label: 'Hash Rate (EH/s)',
+backgroundColor: '#8be9fd',
+borderColor: '#8be9fd',
+data: [],
+fill: false,
+tension: 0.3
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: { legend: { labels: { color: '#eee' } } },
+scales: {
+x: { ticks: { color: '#ccc' } },
+y: { ticks: { color: '#ccc' }, beginAtZero: false }
+}
+}
+});
+const mempoolChart = new Chart(document.getElementById('mempoolChart'), {
+type: 'line',
+data: {
+labels: [],
+datasets: [{
+label: 'Mempool Tx Count',
+backgroundColor: '#50fa7b',
+borderColor: '#50fa7b',
+data: [],
+fill: false,
+tension: 0.3
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: { legend: { labels: { color: '#eee' } } },
+scales: {
+x: { ticks: { color: '#ccc' } },
+y: { ticks: { color: '#ccc' }, beginAtZero: true }
+}
+}
+});
+// In-memory store for mempool data (24 hours = 288 points at 5-min intervals)
+let mempoolHistory = [];
+let isInitialMempoolLoaded = false; // Flag for initial historical load
+// Utility function for error handling
+function showError(elementId, message) {
+document.getElementById(elementId).textContent = message;
+}
+// Fetch difficulty data (daily)
+async function fetchDifficultyData() {
+try {
+const res = await fetch(
+"https://api.blockchain.info/charts/difficulty?timespan=2years&format=json&cors=true",
+{ signal: AbortSignal.timeout(5000) }
+);
+if (!res.ok) throw new Error(`HTTP ${res.status}`);
+const json = await res.json();
+if (!json.values.length) throw new Error("No difficulty data returned");
+const points = json.values.map(p => ({
+x: new Date(p.x * 1000),
+y: p.y
+}));
+difficultyChart.data.labels = points.map(p => p.x.toLocaleDateString());
+difficultyChart.data.datasets[0].data = points.map(p => p.y);
+difficultyChart.update();
+showError('difficulty-error', '');
+} catch (err) {
+showError('difficulty-error', `Failed to load difficulty: ${err.message}`);
+console.error('Difficulty fetch error:', err);
+}
+}
+// Fetch hash rate data (daily, with 2 years history)
+async function fetchHashRateData() {
+try {
+const res = await fetch(
+"https://api.blockchain.info/charts/hash-rate?timespan=2years&format=json&cors=true",
+{ signal: AbortSignal.timeout(5000) }
+);
+if (!res.ok) throw new Error(`HTTP ${res.status}`);
+const json = await res.json();
+if (!json.values.length) throw new Error("No hash rate data returned");
+const points = json.values.map(p => ({
+x: new Date(p.x * 1000),
+y: p.y
+}));
+hashRateChart.data.labels = points.map(p => p.x.toLocaleDateString());
+hashRateChart.data.datasets[0].data = points.map(p => p.y);
+hashRateChart.update();
+showError('hashrate-error', '');
+} catch (err) {
+showError('hashrate-error', `Failed to load hash rate: ${err.message}`);
+console.error('Hash rate fetch error:', err);
+}
+}
+// Fetch mempool data
+async function fetchMempoolData() {
+try {
+if (!isInitialMempoolLoaded) {
+const histRes = await fetch("https://api.blockchain.info/charts/mempool-count?timespan=1days&format=json&cors=true", { signal: AbortSignal.timeout(5000) });
+if (!histRes.ok) throw new Error(`HTTP ${histRes.status}`);
+const histJson = await histRes.json();
+if (histJson.values.length) {
+mempoolHistory = histJson.values.map(p => ({
+x: new Date(p.x * 1000),
+y: p.y
+}));
+}
+isInitialMempoolLoaded = true;
+}
+// Fetch current count and append
+const res = await fetch("https://api.blockchain.info/q/unconfirmedcount?cors=true", { signal: AbortSignal.timeout(5000) });
+if (!res.ok) throw new Error(`HTTP ${res.status}`);
+const count = parseInt(await res.text()) || 0;
+const now = new Date();
+mempoolHistory.push({
+x: now,
+y: count
+});
+// Keep only 24 hours of data
+const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+mempoolHistory = mempoolHistory.filter(p => p.x > oneDayAgo);
+mempoolChart.data.labels = mempoolHistory.map(p => p.x.toLocaleTimeString());
+mempoolChart.data.datasets[0].data = mempoolHistory.map(p => p.y);
+mempoolChart.update();
+showError('mempool-error', '');
+} catch (err) {
+showError('mempool-error', `Failed to load mempool: ${err.message}`);
+console.error('Mempool fetch error:', err);
+}
+}
+// Fetch latest BTC price for sidebar
+async function fetchLatestPrice() {
+try {
+const res = await fetch("https://api.blockchain.info/ticker?cors=true");
+if (!res.ok) throw new Error(`HTTP ${res.status}`);
+const data = await res.json();
+document.getElementById('latest-price').textContent = `$${data.USD.last.toLocaleString()}`;
+} catch (err) {
+document.getElementById('latest-price').textContent = 'Error loading price';
+console.error('Price fetch error:', err);
+}
+}
+// Initial data load
+fetchDifficultyData();
+fetchHashRateData();
+fetchMempoolData();
+fetchLatestPrice();
+// Update intervals
+setInterval(fetchDifficultyData, 24 * 60 * 60 * 1000); // Daily for difficulty
+setInterval(fetchHashRateData, 24 * 60 * 60 * 1000); // Daily for hash rate
+setInterval(fetchMempoolData, 5 * 60 * 1000); // Every 5 minutes for mempool
+setInterval(fetchLatestPrice, 60 * 1000); // Every minute for price
 </script>
-
 </body>
 </html>
