@@ -8,8 +8,8 @@
 <style>
 body {
 font-family: sans-serif;
-background: #111;
-color: #eee;
+background: #f5f5f5;
+color: #333;
 margin: 0;
 padding: 0;
 display: flex;
@@ -18,7 +18,7 @@ min-height: 100vh;
 }
 header {
 background: #f7931a;
-color: black;
+color: #fff;
 padding: 1rem;
 text-align: center;
 }
@@ -28,7 +28,7 @@ padding: 1rem;
 }
 section {
 padding: 1rem;
-border-bottom: 1px solid #333;
+border-bottom: 1px solid #ccc;
 }
 h2 {
 color: #f7931a;
@@ -40,10 +40,10 @@ height: 400px !important;
 max-width: 100%;
 }
 .sidebar {
-background: #1c1c1c;
-color: #ccc;
+background: #e0e0e0;
+color: #333;
 padding: 1rem;
-border-top: 1px solid #333;
+border-top: 1px solid #ccc;
 }
 .error {
 color: #ff5555;
@@ -64,7 +64,7 @@ right: 0;
 top: 0;
 bottom: 0;
 overflow-y: auto;
-border-left: 1px solid #333;
+border-left: 1px solid #ccc;
 border-top: none;
 }
 .tradingview-widget-container, canvas, iframe {
@@ -127,14 +127,14 @@ height: 500px !important;
 </div>
 <script src="https://s3.tradingview.com/tv.js"></script>
 <script>
-// Initialize TradingView widgets
+// Initialize TradingView widgets with light theme
 new TradingView.widget({
 width: "100%",
 height: "100%",
 symbol: "BITSTAMP:BTCUSD",
 interval: "D",
 timezone: "Etc/UTC",
-theme: "dark",
+theme: "light",
 style: "1",
 locale: "en",
 toolbar_bg: "#f1f3f6",
@@ -148,7 +148,7 @@ height: "100%",
 symbol: "CRYPTOCAP:BTC.D",
 interval: "D",
 timezone: "Etc/UTC",
-theme: "dark",
+theme: "light",
 style: "1",
 locale: "en",
 toolbar_bg: "#f1f3f6",
@@ -162,7 +162,7 @@ height: "100%",
 symbol: "FRED:M2SL",
 interval: "M",
 timezone: "Etc/UTC",
-theme: "dark",
+theme: "light",
 style: "1",
 locale: "en",
 toolbar_bg: "#f1f3f6",
@@ -170,14 +170,14 @@ enable_publishing: false,
 allow_symbol_change: false,
 container_id: "us_m2"
 });
-// Chart.js initialization
+// Chart.js initialization with light theme
 const difficultyChart = new Chart(document.getElementById('difficultyChart'), {
 type: 'line',
 data: {
 labels: [],
 datasets: [{
 label: 'Difficulty',
-backgroundColor: '#f7931a',
+backgroundColor: 'rgba(247, 147, 26, 0.5)',
 borderColor: '#f7931a',
 data: [],
 fill: false,
@@ -187,10 +187,10 @@ tension: 0.3
 options: {
 responsive: true,
 maintainAspectRatio: false,
-plugins: { legend: { labels: { color: '#eee' } } },
+plugins: { legend: { labels: { color: '#333' } } },
 scales: {
-x: { ticks: { color: '#ccc' } },
-y: { ticks: { color: '#ccc' }, beginAtZero: false }
+x: { ticks: { color: '#666' } },
+y: { ticks: { color: '#666' }, beginAtZero: false }
 }
 }
 });
@@ -200,8 +200,8 @@ data: {
 labels: [],
 datasets: [{
 label: 'Hash Rate (EH/s)',
-backgroundColor: '#8be9fd',
-borderColor: '#8be9fd',
+backgroundColor: 'rgba(0, 102, 204, 0.5)', // Darker blue
+borderColor: '#0066cc', // Darker blue
 data: [],
 fill: false,
 tension: 0.3
@@ -210,10 +210,10 @@ tension: 0.3
 options: {
 responsive: true,
 maintainAspectRatio: false,
-plugins: { legend: { labels: { color: '#eee' } } },
+plugins: { legend: { labels: { color: '#333' } } },
 scales: {
-x: { ticks: { color: '#ccc' } },
-y: { ticks: { color: '#ccc' }, beginAtZero: false }
+x: { ticks: { color: '#666' } },
+y: { ticks: { color: '#666' }, beginAtZero: false }
 }
 }
 });
@@ -223,8 +223,8 @@ data: {
 labels: [],
 datasets: [{
 label: 'Mempool Tx Count',
-backgroundColor: '#50fa7b',
-borderColor: '#50fa7b',
+backgroundColor: 'rgba(0, 100, 0, 0.5)', // Darker green
+borderColor: '#006400', // Darker green
 data: [],
 fill: false,
 tension: 0.3
@@ -233,10 +233,10 @@ tension: 0.3
 options: {
 responsive: true,
 maintainAspectRatio: false,
-plugins: { legend: { labels: { color: '#eee' } } },
+plugins: { legend: { labels: { color: '#333' } } },
 scales: {
-x: { ticks: { color: '#ccc' } },
-y: { ticks: { color: '#ccc' }, beginAtZero: true }
+x: { ticks: { color: '#666' } },
+y: { ticks: { color: '#666' }, beginAtZero: true }
 }
 }
 });
