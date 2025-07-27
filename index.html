@@ -34,7 +34,7 @@ h2 {
 color: #f7931a;
 margin-bottom: 0.5rem;
 }
-.tradingview-widget-container, canvas {
+.tradingview-widget-container, canvas, iframe {
 width: 100% !important;
 height: 400px !important;
 max-width: 100%;
@@ -67,7 +67,7 @@ overflow-y: auto;
 border-left: 1px solid #333;
 border-top: none;
 }
-.tradingview-widget-container, canvas {
+.tradingview-widget-container, canvas, iframe {
 height: 500px !important;
 }
 }
@@ -77,7 +77,7 @@ height: 500px !important;
 <main>
 <header>
 <h1>Bitcoin Metrics Dashboard</h1>
-<p>Live charts: BTC/USD, Dominance, Difficulty, Hash Rate, US M2, Mempool</p>
+<p>Live charts: BTC/USD, Dominance, Difficulty, Hash Rate, US M2, HODL Waves, Mempool</p>
 </header>
 <section>
 <h2>BTC/USD Price Chart</h2>
@@ -109,6 +109,11 @@ height: 500px !important;
 <div id="us_m2"></div>
 </div>
 <div id="usm2-error" class="error"></div>
+</section>
+<section>
+<h2>Bitcoin HODL Waves</h2>
+<iframe src="https://chart-studio.plotly.com/~unchained/37/embed" frameborder="0" style="border:0"></iframe>
+<div id="hodl-error" class="error"></div>
 </section>
 <section>
 <h2>Mempool Size</h2>
